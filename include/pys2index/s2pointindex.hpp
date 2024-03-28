@@ -14,7 +14,6 @@
 #include "xtensor-python/pyarray.hpp"
 #include "xtensor/xmanipulation.hpp"
 #include "xtensor/xview.hpp"
-#include "xtensor/xsort.hpp"
 
 #if __has_include("tbb/parallel_for.h")
 #define S2POINTINDEX_TBB
@@ -108,8 +107,10 @@ namespace pys2index
 
         py::gil_scoped_release release;
 #ifdef S2POINTINDEX_TBB
+        // indexing is very fast so we should not allow too small chunks
+        std::size_t chuncksize = 1024;
         tbb::parallel_for(
-            tbb::blocked_range<std::size_t>(0, n_points),
+            tbb::blocked_range<std::size_t>(0, n_points, chuncksize),
             [&](tbb::blocked_range<std::size_t> r)
             {
                 for (std::size_t i = r.begin(); i < r.end(); ++i)
